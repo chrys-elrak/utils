@@ -9,7 +9,7 @@ const parseParams = () => {
   const paramsArray = args.slice(1);
   paramsArray.forEach((param) => {
     const [key, value] = param.split("=");
-    params[key] = value;
+    params[key] = value || true;
   });
   return params;
 };
@@ -108,6 +108,7 @@ const main = async () => {
   const params = parseParams();
   outputFileName = params.output || params.o || params.out || outputFileName;
   requirements();
+  console.log(params)
   if (params.lang || params.l || params.language) {
     console.log("Creating language file: OK");
     createLanguageFile();
