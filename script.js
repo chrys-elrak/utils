@@ -104,11 +104,19 @@ const translateFile = async () => {
   }
 };
 
+const extractValue = () => {
+    const data = readFile();
+    const fileName = outputFileName.split('.').slice(0, -1).join('') + '.txt';
+    const out = fs.createWriteStream(fileName, {flags: 'w'});
+    for (const value of Object.values(data)) {
+        out.write(value + '\n');
+    }
+}
+
 const main = async () => {
   const params = parseParams();
   outputFileName = params.output || params.o || params.out || outputFileName;
   requirements();
-  console.log(params)
   if (params.lang || params.l || params.language) {
     console.log("Creating language file: OK");
     createLanguageFile();
@@ -118,7 +126,13 @@ const main = async () => {
     console.log("Translating file ...");
     await translateFile();
   }
+
+  if (params.extract || params.e) {
+      console.log("Extracting file ...");
+      extractValue();
+  }
   process.exit(0);
 };
+
 
 main();
