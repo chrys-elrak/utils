@@ -3,6 +3,10 @@ const [, , ...args] = process.argv;
 
 let outputFileName = "output.json";
 const inputFilePath = args[0];
+const usage = `
+USAGE:
+    node script.js file.json [out=export.json] [translate] [language]
+`;
 
 const parseParams = () => {
   const params = {};
@@ -17,6 +21,7 @@ const parseParams = () => {
 const requirements = () => {
   if (!inputFilePath) {
     console.log("You must enter file input");
+    console.log(usage);
     process.exit(1);
   }
 
@@ -79,22 +84,38 @@ const question = (text) => {
 
 const translateFile = async () => {
   const data = readFile();
+  let i  = 1;
+  let length = Object.keys(data).length;
+  let quit = false;
   for (const key in data) {
+    i++;
+    if (key !== data[key]) {
+      continue;
+    }
     if (data.hasOwnProperty(key)) {
       let response = "y";
       let translation = "";
       do {
-        translation = ((await question(`${key}: `)) || "").trim();
+        translation = ((await question(`${i}/${length}>> ${key}: `)) || "").trim();
         response = (
-          (await question(`Is this correct: ${translation} ? (y/n)`)) || "y"
+          (await question(`Is this correct: ${translation} ? (y/n/quit)`)) ||
+          "y"
         ).toLowerCase();
+
         if (response !== "n") {
           data[key] = translation;
         }
+        if (response === "q") {
+          quit = true;
+          break;
+        }
       } while (response === "n" || translation === "");
     }
+    if (quit) {
+      break;
+    }
   }
-  console.table(data);
+  console.log(data);
   response = ((await question(`All correct ?(y/n)`)) || "y").toLowerCase();
   if (response === "n") {
     translateFile();
@@ -105,13 +126,13 @@ const translateFile = async () => {
 };
 
 const extractValue = () => {
-    const data = readFile();
-    const fileName = outputFileName.split('.').slice(0, -1).join('') + '.txt';
-    const out = fs.createWriteStream(fileName, {flags: 'w'});
-    for (const value of Object.values(data)) {
-        out.write(value + '\n');
-    }
-}
+  const data = readFile();
+  const fileName = outputFileName.split(".").slice(0, -1).join("") + ".txt";
+  const out = fs.createWriteStream(fileName, { flags: "w" });
+  for (const value of Object.values(data)) {
+    out.write(value + "\n");
+  }
+};
 
 const main = async () => {
   const params = parseParams();
@@ -128,11 +149,10 @@ const main = async () => {
   }
 
   if (params.extract || params.e) {
-      console.log("Extracting file ...");
-      extractValue();
+    console.log("Extracting file ...");
+    extractValue();
   }
   process.exit(0);
 };
-
 
 main();
