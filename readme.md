@@ -8,7 +8,7 @@ This is a simple scripts to generate and create translation file with terminal
     - Nodejs >= v10
 
 ```sh
-    node file.json [out=export.json] [translate] [language]
+    node script.js file.json [out=export.json] [translate] [language]
 ```
 
 *Written by [Chrys Rakotonimanana](https://github.com/chrys-elrak)*.
