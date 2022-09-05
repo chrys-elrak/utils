@@ -5,8 +5,7 @@ let outputFileName = '';
 
 export const parseParams = (args: string[]) => {
     const params: { [key: string]: string | boolean } = {};
-    const paramsArray = args.slice(1);
-    paramsArray.forEach((param: string) => {
+    args.forEach((param: string) => {
         const [key, value] = param.split("=");
         params[key] = value || true;
     });
@@ -17,12 +16,12 @@ export const requirements = (inputFilePath: string) => {
     if (!inputFilePath) {
         console.log("You must enter file input");
         console.log(usage);
-        process.exit(1);
+        return 1;
     }
 
     if (!fs.existsSync(inputFilePath)) {
         console.log(`"${inputFilePath}" does not exist`);
-        process.exit(1);
+        return 1;
     }
 
     if (!outputFileName.endsWith(".json")) {
@@ -39,28 +38,32 @@ export const readFile = (inputFilePath: string) => {
         } else {
             console.log(`Failed to read "${inputFilePath}"`);
         }
-        process.exit(1);
+        return 1;
     }
 };
 
-export const writeFile = (data: { [key: string]: string }) => {
+export const writeFile = (outputPath: string, data: { [key: string]: string }) => {
+    if (outputFileName === '') {
+        throw new Error('Please specify the output path');
+    }
     try {
-        fs.writeFileSync(outputFileName, JSON.stringify(data, null, 4), "utf8");
+        fs.writeFileSync(outputPath, JSON.stringify(data, null, 4), "utf8");
     } catch (e) {
         console.error("Failed to write file");
-        process.exit(1);
+        return 1;
     }
 };
 
-export const createLanguageFile = () => {
-    const data = readFile('');
-    const out: { [key: string]: string } = {};
+export const createLanguageFile = (filePath: string, outputPath = ''): { [key: string]: string } | undefined => {
+    const data = readFile(filePath);
+    const outData: { [key: string]: string } = {};
     for (const key in data) {
         if (data.hasOwnProperty(key)) {
-            out[data[key]] = data[key];
+            outData[data[key]] = data[key];
         }
     }
-    writeFile(out);
+    if (outputPath === '') return outData;
+    writeFile(outputPath, outData);
 };
 
 export const question = (text: string): Promise<string> => {
@@ -77,8 +80,8 @@ export const question = (text: string): Promise<string> => {
     });
 };
 
-export const translateFile = async () => {
-    const data = readFile('');
+export const translateFile = async (filePath: string, outputPath: string) => {
+    const data = readFile(filePath);
     let i = 1;
     let length = Object.keys(data).length;
     let quit = false;
@@ -112,15 +115,15 @@ export const translateFile = async () => {
     }
     const response = ((await question(`All correct ?(y/n)`)) || "y").toLowerCase();
     if (response === "n") {
-        translateFile();
+        translateFile(filePath, outputPath);
     } else {
-        writeFile(data);
+        writeFile(outputPath, data);
         console.log(`File saved as '${outputFileName}'`);
     }
 };
 
-export const extractValue = () => {
-    const data = readFile('');
+export const extractValue = (filePath: string) => {
+    const data = readFile(filePath);
     const fileName = outputFileName.split(".").slice(0, -1).join("") + ".txt";
     const out = fs.createWriteStream(fileName, { flags: "w" });
     for (const value of Object.values(data)) {

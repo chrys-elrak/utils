@@ -9,9 +9,11 @@
     "compile:es6": "tsc --build tsconfig.es6.json",
     "compile:commonjs": "tsc",
     "build": "npm run compile:es6 && npm run compile:commonjs",
-    "launch": "npm run compile:commonjs && node ./test/index.js"
+    "launch:js": "npm run compile:commonjs && node ./test-js/index.js",
+    "launch:ts": "ts-node ./test-ts/index.ts"
   },
   "devDependencies": {
-    "@types/node": "^18.7.14"
+    "@types/node": "^18.7.14",
+    "ts-node": "^10.9.1"
   }
 }
